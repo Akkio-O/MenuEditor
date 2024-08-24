@@ -1,0 +1,176 @@
+#app {
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 60px;
+    max-width: 1500px;
+    margin: 0 auto;
+    font-size: large;
+  }
+
+nav {
+    display: flex;
+    gap: 2vw;
+    justify-content: center;
+}
+
+.menuEditor__wrapper {
+    margin: 50px auto;
+    display: flex;
+    align-items: baseline;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.menuEditor__wrapper_items {
+    position: relative;
+    border-radius: 15px;
+    background-color: black;
+    color: white;
+    transition: all .5s;
+    height: 60px;
+    cursor: pointer;
+    border: 1px solid white;
+    width: 250px;
+}
+.menuEditor__wrapper_items h3 {
+    width: 100%;
+}
+
+.menuEditor__wrapper_items-parent {
+    position: absolute;
+    bottom: 70px;
+}
+.menuEditor__wrapper_items:hover{
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+}
+.menuEditor__wrapper_items-active{
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+}
+
+.menuEditor__wrapper_items-underMenu{
+    width: 80%;
+}
+
+
+
+.breadcrumbs {
+    border-radius: 5px;
+    border: 0 solid;
+    padding: 5px;
+    background-color: black;
+    color: white;
+}
+.breadcrumbs a {
+    color: white;
+    text-decoration: auto;
+    transition: all .5s;
+}
+.breadcrumbs a:hover{
+    color: rgba(255, 255, 255, .7)
+}
+
+.sectionGap {
+    display: flex;
+    flex-direction: column;
+    gap: 1vw;
+    align-items: center;
+}
+
+.sectionGap__parent{
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 1vw
+}
+.sectionGap__parent_child{
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 1vw;
+    border-radius: 15px;
+    background: black;
+    color: white;
+    border: 1px solid black;
+}
+.close,.change {
+    margin: 5px;
+    padding: 5px;
+}
+
+.close:hover,
+.buttonChild:hover, 
+.change:hover {
+    background-color: #c9c9c9;
+    color: black;
+}
+
+.buttonChild {
+    cursor: pointer;
+    border-radius: 15px;
+    border: 0 solid;
+    padding: 5px;
+    background-color: black;
+    color: white;
+    transition: all .5s;
+}
+
+button {
+    cursor: pointer;
+    border-radius: 15px;
+    border: 0 solid;
+    padding: 15px;
+    background-color: black;
+    color: white;
+    transition: all .5s;
+}
+
+button:hover {
+    background-color: #c9c9c9;
+    color: black;
+}
+
+
+/* tags */
+section {
+    max-width: 1500px;
+    margin: 0 auto;
+}
+
+li {
+    margin: 5px auto;
+}
+
+input {
+    background: black;
+    color: white;
+    padding: 15px;
+    border-radius: 15px;
+    border: none;
+    transition: all .5s
+}
+
+input:focus {
+    background: white;
+    color: black;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.slide-fade-enter-active, .slide-fade-leave-active {
+    transition: all 0.7s ease;
+}
+
+.slide-fade-enter, .slide-fade-leave-to {
+    transform: translateY(-20px);
+    opacity: 0;
+}

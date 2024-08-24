@@ -1,0 +1,28 @@
+section {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 15px;
+}
+
+section form {
+    width: 400px;
+    display: flex;
+    margin: 0 auto;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.authorization_button {
+    margin: 0 90px;
+}
+
+.authorization_error::placeholder {
+    color: red;
+}
+.authorization_error{
+    border: 3px solid red;
+}
+
+/* input:focus {
+    border: 2px solid red;
+} */
