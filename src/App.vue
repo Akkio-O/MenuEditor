@@ -50,8 +50,8 @@ export default {
         })
         .then(data => {
           console.log('Logout successful', data);
-          this.setAuthenticated(false); // Обновляем состояние в Vuex Store
-          this.$router.push('/'); // Перенаправляем пользователя на страницу входа
+          this.setAuthenticated(false);
+          this.$router.push('/');
         })
     }
   },

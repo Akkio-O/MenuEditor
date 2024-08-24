@@ -48,7 +48,7 @@ export default {
 .products {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .product {
@@ -56,7 +56,6 @@ export default {
   border-radius: 5px;
   padding: 20px;
   margin: 10px;
-  width: calc(25% - 20px);
   text-align: center;
 }
 
@@ -72,4 +71,11 @@ export default {
   background-color: white;
   color: black;
 }
+
+@media (max-width: 420px) {
+  .product {
+    width: 100%;
+  }
+}
+
 </style>

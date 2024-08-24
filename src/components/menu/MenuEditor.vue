@@ -65,7 +65,11 @@ export default {
         },
         handleClickOutside(event) {
             const menuElement = this.$refs.menuWrapper;
-            if (menuElement && !menuElement.contains(event.target)) {
+            const menuElem = this.$refs.menuItems;
+            console.log(menuElem)
+
+            const isClickInsideMenuItems = menuElem.some(menu => menu.contains(event.target));
+            if (menuElement && !isClickInsideMenuItems) {
                 this.menu = this.menu.map(item => {
                     item.isActive = false;
                     return item;
@@ -151,7 +155,7 @@ export default {
             <button @click="addMenuItem()">Добавить</button>
         </div>
         <transition-group name="slide-fade" tag="ul" class="menuEditor__wrapper">
-            <li class="sectionGap menuEditor__wrapper_items" v-for="item in menu" :key="item.id"
+            <li class="sectionGap menuEditor__wrapper_items" v-for="item in menu" :key="item.id" ref="menuItems"
                 :class="{ 'menuEditor__wrapper_items-active': item.isActive }">
                 <div v-if="currentRole === 'admin'" class="sectionGap__parent menuEditor__wrapper_items-parent">
                     <button class="change" @click="editMenuItem(item.id)">Изменить</button>
@@ -162,9 +166,11 @@ export default {
                 <transition name="slide-fade">
                     <ul class="menuEditor__wrapper_items-underMenu" v-if="item.isActive && item.children.length">
                         <li class="sectionGap__parent_child" v-for="child in item.children" :key="child.id">
-                            <button v-if="currentRole === 'admin'" class="change" @click="editMenuItem(child.id, true, item.id)">Изменить</button>
+                            <button v-if="currentRole === 'admin'" class="change"
+                                @click="editMenuItem(child.id, true, item.id)">Изменить</button>
                             <h5>{{ child.name }}</h5>
-                            <button v-if="currentRole === 'admin'" class="close" @click="deleteMenuItem(child.id, true, item.id)">X</button>
+                            <button v-if="currentRole === 'admin'" class="close"
+                                @click="deleteMenuItem(child.id, true, item.id)">X</button>
                         </li>
                     </ul>
                 </transition>

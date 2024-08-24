@@ -7,7 +7,6 @@
     margin-top: 60px;
     max-width: 1500px;
     margin: 0 auto;
-    font-size: large;
   }
 
 nav {
@@ -29,8 +28,7 @@ nav {
     border-radius: 15px;
     background-color: black;
     color: white;
-    transition: all .5s;
-    height: 60px;
+    transition: all .4s;
     cursor: pointer;
     border: 1px solid white;
     width: 250px;
@@ -97,6 +95,12 @@ nav {
     border-radius: 15px;
     background: black;
     color: white;
+    border: 1px solid black;
+    transition: all .4s;
+}
+.sectionGap__parent_child:hover {
+    background-color: white;
+    color: black;
     border: 1px solid black;
 }
 .close,.change {
@@ -167,10 +171,20 @@ ul {
 }
 
 .slide-fade-enter-active, .slide-fade-leave-active {
-    transition: all 0.7s ease;
+    transition: all 0.4s;
 }
 
 .slide-fade-enter, .slide-fade-leave-to {
     transform: translateY(-20px);
     opacity: 0;
+}
+
+@media (max-width: 400px) {
+    button {
+        border-radius: 8px;
+        padding: 5px;
+    }
+    .menuEditor__wrapper_items {
+        border-radius: 5px;
+    }
 }
