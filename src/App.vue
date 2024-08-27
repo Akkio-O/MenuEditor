@@ -55,10 +55,10 @@ export default {
         })
     }
   },
-  watch: {
-    isAuthenticated(newValue) {
-      console.log('Состояние isAuthenticated изменилось:', newValue);
-    },
-  },
+  mounted() {
+    if (this.$route.path !== '/MenuEditor') {
+      this.$router.push('/MenuEditor');
+    }
+  }
 }
 </script>
