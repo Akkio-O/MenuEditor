@@ -215,23 +215,19 @@ export default {
                 const { id, name, children } = item;
                 return { id, name, children };
             });
-
             const cleanMenu = menu.map(({ id, name }) => ({ id, name }));
-
             const childrenMenu = menu.flatMap(item =>
                 item.children.map(child => {
                     const { id, name, menu_item_id, children } = child;
                     return { id, name, menu_item_id, children };
                 })
             );
-
             const subChildrenMenu = childrenMenu.flatMap(child =>
                 child.children.map(subChild => {
                     const { id, name } = subChild;
                     return { id, name, child_id: child.id, menu_items_id: child.menu_item_id };
                 })
             );
-
             const requestSettings = {
                 method: "POST",
                 headers: {
@@ -239,7 +235,6 @@ export default {
                 },
                 body: JSON.stringify({ menu: cleanMenu, children: childrenMenu, subChildren: subChildrenMenu }),
             };
-
             fetch('http://localhost:3000/apiMenu/menu_items/save', requestSettings)
                 .then(response => response.json())
                 .then(data => console.log(data))
