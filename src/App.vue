@@ -51,7 +51,7 @@ export default {
         .then(() => {
           this.setAuthenticated(false);
           this.setRole(null);
-          this.$router.push('/');
+          this.$router.push('/MenuEditor');
         })
     }
   },
