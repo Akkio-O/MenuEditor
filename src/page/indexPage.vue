@@ -10,6 +10,11 @@
   
   <script>
   export default {
+    mounted() {
+    if (this.$route.path !== '/MenuEditor') {
+      this.$router.push('/MenuEditor');
+    }
+  }
   };
   </script>
   

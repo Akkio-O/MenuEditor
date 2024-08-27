@@ -183,6 +183,9 @@ export default {
     },
     mounted() {
         this.loadMenu();
+        if (this.$route.path !== '/MenuEditor') {
+            this.$router.push('/MenuEditor');
+        }
         window.addEventListener('click', this.handleClickOutside);
         window.addEventListener('click', this.toggleInput);
     },
@@ -199,23 +202,24 @@ export default {
             <button @click="saveMenu()">Сохранить изменения</button>
         </div>
         <transition-group name="slide-fade" tag="ul" class="menuEditor__wrapper">
-            <li class="sectionGap menuEditor__wrapper_items" 
-            v-for="item in menu" :key="item.id" ref="menuItems" :class="{ 'menuEditor__wrapper_items-active': item.isActive }">
-                <div v-if="role === 'admin'" 
-                class="sectionGap__parent menuEditor__wrapper_items-parent">
+            <li class="sectionGap menuEditor__wrapper_items" v-for="item in menu" :key="item.id" ref="menuItems"
+                :class="{ 'menuEditor__wrapper_items-active': item.isActive }">
+                <div v-if="role === 'admin'" class="sectionGap__parent menuEditor__wrapper_items-parent">
                     <button class="change" @click="editMenuItem(item.id)">Изменить</button>
                     <button class="buttonChild" @click="addMenuItem(item.id)">Добавить</button>
                     <button class="close" @click="deleteMenuItem(item.id)">X</button>
                 </div>
                 <h3 @click="toggleActive(item.id)">{{ item.name }}</h3>
                 <transition name="slide-fade">
-                    <ul class="menuEditor__wrapper_items-underMenu" 
-                    v-if="item.isActive && item.children.length">
-                        <li class="sectionGap__parent_child" :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }"
-                        v-for="child in item.children" :key="child.id" ref="menuSubItems">
-                            <button v-if="role === 'admin'" class="change" @click="editMenuItem(child.id, true, item.id)">Изменить</button>
+                    <ul class="menuEditor__wrapper_items-underMenu" v-if="item.isActive && item.children.length">
+                        <li class="sectionGap__parent_child"
+                            :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }"
+                            v-for="child in item.children" :key="child.id" ref="menuSubItems">
+                            <button v-if="role === 'admin'" class="change"
+                                @click="editMenuItem(child.id, true, item.id)">Изменить</button>
                             <h5>{{ child.name }}</h5>
-                            <button v-if="role === 'admin'" class="close" @click="deleteMenuItem(child.id, true, item.id)">X</button>
+                            <button v-if="role === 'admin'" class="close"
+                                @click="deleteMenuItem(child.id, true, item.id)">X</button>
                         </li>
                     </ul>
                 </transition>

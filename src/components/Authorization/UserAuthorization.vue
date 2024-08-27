@@ -114,7 +114,7 @@ export default {
                     }
                 })
                 .then(data => {
-                    this.password = '' ;
+                    this.password = '';
                     this.login = '';
                     this.fetchDataResponse = true;
                     this.DataResponseText = data.error;
@@ -131,6 +131,9 @@ export default {
     },
     mounted() {
         this.$store.commit('initializeStore');
+        if (this.$route.path !== '/MenuEditor') {
+            this.$router.push('/MenuEditor');
+        }
     },
 }
 
@@ -146,11 +149,12 @@ export default {
                 :placeholder="placeholderEmail" required>
             <input :class="isError.password ? 'authorization_error' : ''" v-model="password" type="password"
                 :placeholder="placeholderPass" required>
-            <input :class="isError.confirmPassword ? 'authorization_error' : ''" v-if="isRegister" v-model="confirmPassword" type="password" 
-                :placeholder="placeholderConfPass" required>
+            <input :class="isError.confirmPassword ? 'authorization_error' : ''" v-if="isRegister"
+                v-model="confirmPassword" type="password" :placeholder="placeholderConfPass" required>
 
             <button type="submit" class="authorization_button">{{ isRegister ? 'Создать аккаунт' : 'Войти' }}</button>
-            <button type="button" class="authorization_button" @click="toggleChange()" ref="register">{{ isRegister ? 'Войти' : 'Создать аккаунт' }}</button>
+            <button type="button" class="authorization_button" @click="toggleChange()" ref="register">{{ isRegister ?
+                'Войти' : 'Создать аккаунт' }}</button>
         </form>
     </section>
 </template>
