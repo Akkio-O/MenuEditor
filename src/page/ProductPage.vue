@@ -17,11 +17,6 @@ export default {
       price: this.$route.params.productPrice,
     };
   },
-  mounted() {
-    if (this.$route.path !== '/MenuEditor') {
-      this.$router.push('/MenuEditor');
-    }
-  }
 };
 </script>
 

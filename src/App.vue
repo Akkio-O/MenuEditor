@@ -55,10 +55,16 @@ export default {
         })
     }
   },
-  mounted() {
-    if (this.$route.path !== '/MenuEditor') {
-      this.$router.push('/MenuEditor');
+  watch: {
+    $route(to) {
+      localStorage.setItem('lastRoute', to.fullPath);
     }
-  }
+  },
+  mounted() {
+    const lastRoute = localStorage.getItem('lastRoute');
+    if (lastRoute) {
+      this.$router.replace(lastRoute);
+    }
+  },
 }
 </script>

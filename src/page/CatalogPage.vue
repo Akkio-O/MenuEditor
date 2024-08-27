@@ -36,11 +36,6 @@ export default {
     productLink(product) {
       return `${this.currentPath}/${product.name}/${product.price}/id=${product.id}`;
     }
-  },
-  mounted() {
-    if (this.$route.path !== '/MenuEditor') {
-      this.$router.push('/MenuEditor');
-    }
   }
 };
 </script>
@@ -72,9 +67,7 @@ export default {
   text-decoration: none;
   border-radius: 5px;
   transition: all .4s;
-}
-
-.button:hover {
+} .button:hover{
   background-color: white;
   color: black;
 }
@@ -84,4 +77,5 @@ export default {
     width: 100%;
   }
 }
+
 </style>
