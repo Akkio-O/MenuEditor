@@ -112,6 +112,7 @@ export default {
                         const newUnderItem = {
                             id: item.children.length ? item.children.length + 1 : 1,
                             name: this.newUnderName,
+                            menu_item_id: item.id,
                             children: []
                         };
                         item.children.push(newUnderItem);
@@ -133,7 +134,9 @@ export default {
                                 }
                                 const newSubChild = {
                                     id: child.children.length ? child.children.length + 1 : 1,
-                                    name: this.newUnderName
+                                    name: this.newUnderName,
+                                    child_id: childId,
+                                    menu_items_id: parentId
                                 };
                                 child.children.push(newSubChild);
                                 this.newUnderName = '';
@@ -215,31 +218,33 @@ export default {
                 const { id, name, children } = item;
                 return { id, name, children };
             });
-            const cleanMenu = menu.map(({ id, name }) => ({ id, name }));
+            const cleanMenu = menu.map(({ id, name, children }) => ({ id, name, children}));
             const childrenMenu = menu.flatMap(item =>
-                item.children.map(child => {
-                    const { id, name, menu_item_id, children } = child;
-                    return { id, name, menu_item_id, children };
-                })
-            );
-            const subChildrenMenu = childrenMenu.flatMap(child =>
-                child.children.map(subChild => {
-                    const { id, name } = subChild;
-                    return { id, name, child_id: child.id, menu_items_id: child.menu_item_id };
-                })
-            );
+                item.children.map(child => ({
+                    id: child.id,
+                    name: child.name,
+                    menu_item_id: child.menu_item_id,
+                    children: child.children.map(subChild => ({
+                        id: subChild.id,
+                        name: subChild.name,
+                        child_id: child.id,
+                        menu_items_id: subChild.menu_items_id
+                    }))
+                }))
+            ).flat();
             const requestSettings = {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ menu: cleanMenu, children: childrenMenu, subChildren: subChildrenMenu }),
+                body: JSON.stringify({ menu: cleanMenu, children: childrenMenu }),
             };
+
             fetch('http://localhost:3000/apiMenu/menu_items/save', requestSettings)
                 .then(response => response.json())
                 .then(data => console.log(data))
                 .catch(error => console.error(error));
-        },
+        }
     },
     mounted() {
         this.loadMenu();
@@ -269,8 +274,10 @@ export default {
                 <h3 @click="toggleActive(item.id)">{{ item.name }}</h3>
                 <transition name="slide-fade">
                     <ul class="menuEditor__wrapper_items-underMenu" v-if="item.isActive && item.children.length">
-                        <li class="sectionGap__parent_child" v-for="child in item.children" :key="child.id" ref="menuSubItems">
-                            <div class="menuEditor__wrapper_items-underMenu--wrapper" :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }">
+                        <li class="sectionGap__parent_child" v-for="child in item.children" :key="child.id"
+                            ref="menuSubItems">
+                            <div class="menuEditor__wrapper_items-underMenu--wrapper"
+                                :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }">
                                 <div>
                                     <button v-if="role === 'admin'" class="change"
                                         @click="editMenuItem(child.id, true, item.id)">Edit</button>
