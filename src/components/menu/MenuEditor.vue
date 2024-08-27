@@ -213,7 +213,7 @@ export default {
                     v-if="item.isActive && item.children.length">
                         <li class="sectionGap__parent_child" :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }"
                         v-for="child in item.children" :key="child.id" ref="menuSubItems">
-                            <button v-if="role === 'admin'" class="change"@click="editMenuItem(child.id, true, item.id)">Изменить</button>
+                            <button v-if="role === 'admin'" class="change" @click="editMenuItem(child.id, true, item.id)">Изменить</button>
                             <h5>{{ child.name }}</h5>
                             <button v-if="role === 'admin'" class="close" @click="deleteMenuItem(child.id, true, item.id)">X</button>
                         </li>
