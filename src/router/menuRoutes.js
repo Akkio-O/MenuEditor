@@ -15,7 +15,6 @@ router.get("/menu_items", async (req, res) => {
 });
 router.post("/menu_items/save", async (req, res) => {
   const { menu } = req.body;
-//   children.map(item => console.log(item.children))
   const connection = await con.getConnection();
 
   try {
