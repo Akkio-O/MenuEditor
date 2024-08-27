@@ -19,7 +19,7 @@
 <script>
 import BreadcrumbsComponent from './components/menu/BreadcrumbsComponent.vue';
 import { RouterLink, RouterView } from 'vue-router';
-import { mapGetters, mapActions } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 import './css/menu.css';
 
 export default {
@@ -29,10 +29,10 @@ export default {
     BreadcrumbsComponent,
   },
   computed: {
-    ...mapGetters(['isAuthenticated']),
+    ...mapState(['isAuthenticated', 'role']),
   },
   methods: {
-    ...mapActions(['setAuthenticated']),
+    ...mapActions(['setAuthenticated', 'setRole']),
     logout() {
       const requestOptions = {
         method: "GET",
@@ -40,7 +40,7 @@ export default {
           "Content-Type": "application/json",
         },
       };
-      fetch('http://localhost:3060/logout', requestOptions)
+      fetch('http://localhost:3000/logout', requestOptions)
         .then(response => {
           if (response.headers.get('Content-Type')?.includes('application/json')) {
             return response.json();
@@ -48,10 +48,10 @@ export default {
             return response.text();
           }
         })
-        .then(data => {
-          console.log('Logout successful', data);
+        .then(() => {
           this.setAuthenticated(false);
-          this.$router.push('/');
+          this.setRole(null);
+          this.$router.push('/MenuEditor');
         })
     }
   },

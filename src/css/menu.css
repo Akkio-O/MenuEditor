@@ -2,6 +2,7 @@
     font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    box-sizing: border-box;
     text-align: center;
     color: #2c3e50;
     margin-top: 60px;
@@ -9,21 +10,17 @@
     margin: 0 auto;
   }
 
-nav {
-    display: flex;
-    gap: 2vw;
-    justify-content: center;
-}
-
 .menuEditor__wrapper {
     margin: 50px auto;
     display: flex;
     align-items: baseline;
     flex-direction: row;
     flex-wrap: wrap;
+    gap: 10vw;
 }
 
 .menuEditor__wrapper_items {
+    z-index: 1;
     position: relative;
     border-radius: 15px;
     background-color: black;
@@ -39,7 +36,7 @@ nav {
 
 .menuEditor__wrapper_items-parent {
     position: absolute;
-    bottom: 70px;
+    top: -40px;
 }
 .menuEditor__wrapper_items:hover{
     background-color: white;
@@ -53,6 +50,7 @@ nav {
 }
 
 .menuEditor__wrapper_items-underMenu{
+    z-index: 2;
     width: 80%;
 }
 
@@ -90,13 +88,15 @@ nav {
 .sectionGap__parent_child{
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
-    gap: 1vw;
+    justify-content: space-between;
     border-radius: 15px;
     background: black;
     color: white;
     border: 1px solid black;
     transition: all .4s;
+}
+.sectionGap__parent_child-forUsers{
+    justify-content: center;
 }
 .sectionGap__parent_child:hover {
     background-color: white;
@@ -124,22 +124,6 @@ nav {
     color: white;
     transition: all .5s;
 }
-
-button {
-    cursor: pointer;
-    border-radius: 15px;
-    border: 0 solid;
-    padding: 15px;
-    background-color: black;
-    color: white;
-    transition: all .5s;
-}
-
-button:hover {
-    background-color: #c9c9c9;
-    color: black;
-}
-
 
 /* tags */
 section {
@@ -170,6 +154,23 @@ ul {
     padding: 0;
 }
 
+button {
+    cursor: pointer;
+    border-radius: 15px;
+    border: 0 solid;
+    padding: 15px;
+    background-color: black;
+    color: white;
+    transition: all .5s;
+}
+
+button:hover {
+    background-color: #c9c9c9;
+    color: black;
+}
+
+/* animate */
+
 .slide-fade-enter-active, .slide-fade-leave-active {
     transition: all 0.4s;
 }
@@ -187,4 +188,9 @@ ul {
     .menuEditor__wrapper_items {
         border-radius: 5px;
     }
+}
+nav {
+    display: flex;
+    gap: 2vw;
+    justify-content: center;
 }

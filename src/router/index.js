@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory} from 'vue-router'
+import { createRouter, createWebHistory} from 'vue-router'
 import MenuDisplayView from '../views/MenuDisplayView.vue'
 import UserAuthorizationView from '../views/UserAuthorizationView.vue'
 import IndexView from '../views/IndexView.vue'
@@ -13,7 +13,7 @@ const routes = [
   { path: '/catalog/:productName/:productPrice?/:productId?', component: ProductView },
 ]
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes
 })
 
