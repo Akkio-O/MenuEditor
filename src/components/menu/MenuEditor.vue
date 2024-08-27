@@ -269,10 +269,8 @@ export default {
                 <h3 @click="toggleActive(item.id)">{{ item.name }}</h3>
                 <transition name="slide-fade">
                     <ul class="menuEditor__wrapper_items-underMenu" v-if="item.isActive && item.children.length">
-                        <li class="sectionGap__parent_child"
-                            :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }"
-                            v-for="child in item.children" :key="child.id" ref="menuSubItems">
-                            <div class="menuEditor__wrapper_items-underMenu--wrapper">
+                        <li class="sectionGap__parent_child" v-for="child in item.children" :key="child.id" ref="menuSubItems">
+                            <div class="menuEditor__wrapper_items-underMenu--wrapper" :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }">
                                 <div>
                                     <button v-if="role === 'admin'" class="change"
                                         @click="editMenuItem(child.id, true, item.id)">Edit</button>
