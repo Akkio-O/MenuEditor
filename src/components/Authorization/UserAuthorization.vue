@@ -121,7 +121,7 @@ export default {
                     if (data.success) {
                         this.setAuthenticated(true);
                         this.setRole(data.role)
-                        this.$router.push('/menu').then(() => {
+                        this.$router.push('../menu').then(() => {
                             window.location.reload();
                         });
                     }
