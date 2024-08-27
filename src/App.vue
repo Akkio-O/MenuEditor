@@ -55,16 +55,5 @@ export default {
         })
     }
   },
-  watch: {
-    $route(to) {
-      localStorage.setItem('lastRoute', to.fullPath);
-    }
-  },
-  mounted() {
-    const lastRoute = localStorage.getItem('lastRoute');
-    if (lastRoute) {
-      this.$router.replace(lastRoute);
-    }
-  },
 }
 </script>

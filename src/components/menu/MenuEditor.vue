@@ -34,8 +34,17 @@ export default {
                             .map(child => ({
                                 id: child.id,
                                 name: child.subname,
-                                menu_item_id: child.menu_item_id
+                                menu_item_id: child.menu_item_id,
+                                children: data.subsubmenu
+                                    .filter(subChild => subChild.child_id === child.id)
+                                    .map(subChild => ({
+                                        id: subChild.id,
+                                        name: subChild.name,
+                                        child_id: subChild.child_id,
+                                        menu_items_id: subChild.menu_items_id
+                                    }))
                             }));
+
                         return {
                             id: item.id,
                             name: item.name,
@@ -96,17 +105,16 @@ export default {
                 this.newPlaceholderParent = 'Название меню';
             } else if (this.newUnderName !== '' && parentId !== null) {
                 this.menu = this.menu.map(item => {
-                    const newUnderItem = {
-                        id: item.children ? item.children.length + 1 : 1,
-                        name: this.newUnderName,
-                        menu_item_id: item.id
-                    };
                     if (item.id === parentId) {
-                        if (Array.isArray(item.children)) {
-                            item.children.push(newUnderItem);
-                        } else {
-                            item.children = [newUnderItem];
+                        if (!Array.isArray(item.children)) {
+                            item.children = [];
                         }
+                        const newUnderItem = {
+                            id: item.children.length ? item.children.length + 1 : 1,
+                            name: this.newUnderName,
+                            children: []
+                        };
+                        item.children.push(newUnderItem);
                         this.newUnderName = '';
                         this.newPlaceholderChild = 'Название подменю';
                     }
@@ -114,24 +122,23 @@ export default {
                 });
             }
         },
-        editMenuItem(id, isChild = false, parentId = null) {
-            if (this.newName !== '') {
-                this.menu = this.menu.map(item => {
-                    if (item.id === id && !isChild) {
-                        item.name = this.newName;
-                        this.newName = '';
-                    }
-                    return item;
-                });
-            }
+        addSubChild(parentId, childId) {
             if (this.newUnderName !== '') {
                 this.menu = this.menu.map(item => {
-                    if (isChild && item.id === parentId) {
+                    if (item.id === parentId) {
                         item.children = item.children.map(child => {
-                            if (child.id === id) {
-                                child.name = this.newUnderName;
+                            if (child.id === childId) {
+                                if (!Array.isArray(child.children)) {
+                                    child.children = [];
+                                }
+                                const newSubChild = {
+                                    id: child.children.length ? child.children.length + 1 : 1,
+                                    name: this.newUnderName
+                                };
+                                child.children.push(newSubChild);
+                                this.newUnderName = '';
+                                this.newPlaceholderChild = 'Название подменю';
                             }
-                            this.newUnderName = '';
                             return child;
                         });
                     }
@@ -139,13 +146,62 @@ export default {
                 });
             }
         },
-        deleteMenuItem(id, isChild = false, parentId = null) {
-            if (isChild) {
+        editMenuItem(id, isChild = false, parentId = null, isSubChild = false, childId = null) {
+            if (this.newName !== '' && !isChild && !isSubChild) {
+                this.menu = this.menu.map(item => {
+                    if (item.id === id) {
+                        item.name = this.newName;
+                        this.newName = '';
+                    }
+                    return item;
+                });
+            } else if (this.newUnderName !== '') {
+                this.menu = this.menu.map(item => {
+                    if (isChild && !isSubChild && item.id === parentId) {
+                        item.children = item.children.map(child => {
+                            if (child.id === id) {
+                                child.name = this.newUnderName;
+                            }
+                            return child;
+                        });
+                        this.newUnderName = '';
+                    } else if (isSubChild && item.id === parentId) {
+                        item.children = item.children.map(child => {
+                            if (child.id === childId) {
+                                child.children = child.children.map(subChild => {
+                                    if (subChild.id === id) {
+                                        subChild.name = this.newUnderName;
+                                    }
+                                    return subChild;
+                                });
+                            }
+                            return child;
+                        });
+                        this.newUnderName = '';
+                    }
+                    return item;
+                });
+            }
+        },
+        deleteMenuItem(id, isChild = false, parentId = null, isSubChild = false, childId = null) {
+            if (isSubChild) {
+                this.menu = this.menu.map(item => {
+                    if (item.id === parentId) {
+                        item.children = item.children.map(child => {
+                            if (child.id === childId) {
+                                child.children = child.children.filter(subChild => subChild.id !== id);
+                            }
+                            return child;
+                        });
+                    }
+                    return item;
+                });
+            } else if (isChild) {
                 this.menu = this.menu.map(item => {
                     if (item.id === parentId) {
                         item.children = item.children.filter(child => child.id !== id);
                         if (item.children.length === 0) {
-                            item.isActive = true;
+                            item.isActive = false;
                         }
                     }
                     return item;
@@ -159,27 +215,36 @@ export default {
                 const { id, name, children } = item;
                 return { id, name, children };
             });
+
             const cleanMenu = menu.map(({ id, name }) => ({ id, name }));
+
             const childrenMenu = menu.flatMap(item =>
-                item.children.map(item => {
-                    const { id, name, menu_item_id } = item
-                    return { id, name, menu_item_id };
+                item.children.map(child => {
+                    const { id, name, menu_item_id, children } = child;
+                    return { id, name, menu_item_id, children };
                 })
             );
-            const resultChild = childrenMenu.map(item => console.log(item))
-            console.log(resultChild);
+
+            const subChildrenMenu = childrenMenu.flatMap(child =>
+                child.children.map(subChild => {
+                    const { id, name } = subChild;
+                    return { id, name, child_id: child.id, menu_items_id: child.menu_item_id };
+                })
+            );
+
             const requestSettings = {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ menu: cleanMenu, children: childrenMenu }),
+                body: JSON.stringify({ menu: cleanMenu, children: childrenMenu, subChildren: subChildrenMenu }),
             };
+
             fetch('http://localhost:3000/apiMenu/menu_items/save', requestSettings)
                 .then(response => response.json())
                 .then(data => console.log(data))
-                .catch(error => console.error(error))
-        }
+                .catch(error => console.error(error));
+        },
     },
     mounted() {
         this.loadMenu();
@@ -199,23 +264,44 @@ export default {
             <button @click="saveMenu()">Сохранить изменения</button>
         </div>
         <transition-group name="slide-fade" tag="ul" class="menuEditor__wrapper">
-            <li class="sectionGap menuEditor__wrapper_items" 
-            v-for="item in menu" :key="item.id" ref="menuItems" :class="{ 'menuEditor__wrapper_items-active': item.isActive }">
-                <div v-if="role === 'admin'" 
-                class="sectionGap__parent menuEditor__wrapper_items-parent">
-                    <button class="change" @click="editMenuItem(item.id)">Изменить</button>
-                    <button class="buttonChild" @click="addMenuItem(item.id)">Добавить</button>
+            <li class="sectionGap menuEditor__wrapper_items" v-for="item in menu" :key="item.id" ref="menuItems"
+                :class="{ 'menuEditor__wrapper_items-active': item.isActive }">
+                <div v-if="role === 'admin'" class="sectionGap__parent menuEditor__wrapper_items-parent">
+                    <button class="change" @click="editMenuItem(item.id)">Edit</button>
+                    <button class="buttonChild" @click="addMenuItem(item.id)">+</button>
                     <button class="close" @click="deleteMenuItem(item.id)">X</button>
                 </div>
                 <h3 @click="toggleActive(item.id)">{{ item.name }}</h3>
                 <transition name="slide-fade">
-                    <ul class="menuEditor__wrapper_items-underMenu" 
-                    v-if="item.isActive && item.children.length">
-                        <li class="sectionGap__parent_child" :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }"
-                        v-for="child in item.children" :key="child.id" ref="menuSubItems">
-                            <button v-if="role === 'admin'" class="change" @click="editMenuItem(child.id, true, item.id)">Изменить</button>
-                            <h5>{{ child.name }}</h5>
-                            <button v-if="role === 'admin'" class="close" @click="deleteMenuItem(child.id, true, item.id)">X</button>
+                    <ul class="menuEditor__wrapper_items-underMenu" v-if="item.isActive && item.children.length">
+                        <li class="sectionGap__parent_child"
+                            :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }"
+                            v-for="child in item.children" :key="child.id" ref="menuSubItems">
+                            <div class="menuEditor__wrapper_items-underMenu--wrapper">
+                                <div>
+                                    <button v-if="role === 'admin'" class="change"
+                                        @click="editMenuItem(child.id, true, item.id)">Edit</button>
+                                    <button v-if="role === 'admin'" class="buttonChild"
+                                        @click="addSubChild(item.id, child.id)">+</button>
+                                </div>
+                                <h5>{{ child.name }}</h5>
+                                <button v-if="role === 'admin'" class="close"
+                                    @click="deleteMenuItem(child.id, true, item.id)">X</button>
+                            </div>
+                            <transition name="slide-fade">
+                                <ul class="menuEditor__wrapper_items-underMenu"
+                                    v-if="item.isActive && child.children && child.children.length">
+                                    <li class="sectionGap__parent_child sectionGap__parent_childSecond"
+                                        :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }"
+                                        v-for="subChild in child.children" :key="subChild.id">
+                                        <button v-if="role === 'admin'" class="change"
+                                            @click="editMenuItem(subChild.id, true, item.id, true, child.id)">Edit</button>
+                                        <h5>{{ subChild.name }}</h5>
+                                        <button v-if="role === 'admin'" class="close"
+                                            @click="deleteMenuItem(subChild.id, true, item.id, true, child.id)">X</button>
+                                    </li>
+                                </ul>
+                            </transition>
                         </li>
                     </ul>
                 </transition>

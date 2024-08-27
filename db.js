@@ -18,20 +18,31 @@ async function createTables() {
                 is_active TINYINT DEFAULT FALSE,
                 FOREIGN KEY (parent_id) REFERENCES menu_items(id) ON DELETE CASCADE
             )
-        `,
-            console.log('menu_items table created')
-        );
+        `);
+        console.log('menu_items table created');
+
         await con.query(`
             CREATE TABLE IF NOT EXISTS submenu_items (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 subname VARCHAR(255) NOT NULL,
                 menu_item_id INT,
-                is_active TINYINT DEFAULT FALSE,
                 FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE
             )
-        `,
-            console.log('subMenu_items table created')
-        );
+        `);
+        console.log('submenu_items table created');
+
+        await con.query(`
+            CREATE TABLE IF NOT EXISTS subsubmenu_items (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                name VARCHAR(255) NOT NULL,
+                child_id INT,
+                menu_items_id INT,
+                FOREIGN KEY (child_id) REFERENCES submenu_items(id) ON DELETE CASCADE,
+                FOREIGN KEY (menu_items_id) REFERENCES menu_items(id) ON DELETE CASCADE
+            )
+        `);
+        console.log('subsubmenu_items table created');
+
         await con.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -48,6 +59,7 @@ async function createTables() {
         console.error('Error creating tables:', err.message);
     }
 }
+
 
 createTables();
 
