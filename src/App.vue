@@ -1,7 +1,5 @@
 <template>
-  <nav>
-    <RouterLink to="/home"><button>Главная</button></RouterLink>
-    <RouterLink to="/catalog"><button>Каталог</button></RouterLink>
+  <div class="menuEditor__navWrapper">
     <RouterLink to="/menu"><button>Меню</button></RouterLink>
     <RouterLink v-if="!isAuthenticated" to="/login">
       <button>Авторизация</button>
@@ -9,15 +7,13 @@
     <RouterLink v-if="isAuthenticated" to="/home">
       <button @click="logout()">Выйти</button>
     </RouterLink>
-  </nav>
-  <nav>
-    <BreadcrumbsComponent />
-  </nav>
-  <RouterView />
+  </div>
+  <div style="margin-top: 75px;">
+    <RouterView />
+  </div>
 </template>
 
 <script>
-import BreadcrumbsComponent from './components/menu/BreadcrumbsComponent.vue';
 import { RouterLink, RouterView } from 'vue-router';
 import { mapState, mapActions } from 'vuex';
 import './css/menu.css';
@@ -26,7 +22,6 @@ export default {
   components: {
     RouterLink,
     RouterView,
-    BreadcrumbsComponent,
   },
   computed: {
     ...mapState(['isAuthenticated', 'role']),
@@ -53,7 +48,7 @@ export default {
           this.setRole(null);
           this.$router.push('/MenuEditor');
         })
-    }
+    },
   },
 }
 </script>
