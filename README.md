@@ -1,5 +1,6 @@
 # MenuEditor
-
+## Branch development => one logic for menu
+## Branch main => second logic for menu
 ## 1. Project setup
 ```
 npm install
