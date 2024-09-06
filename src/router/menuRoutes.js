@@ -4,10 +4,26 @@ const con = require("../../db");
 
 router.get("/menu_items", async (req, res) => {
   try {
-    const [menu] = await con.query("SELECT * FROM menu_items");
-    const [submenu] = await con.query("SELECT * FROM submenu_items");
-    const [subsubmenu] = await con.query("SELECT * FROM subsubmenu_items");
-    res.status(200).json({ menu, submenu, subsubmenu });
+    const [menu] = await con.query("SELECT * FROM menu_hierarchy");
+
+    // Преобразование плоской структуры меню в иерархическую
+    const buildTree = (items, parentId = null) => {
+      return items
+        .filter(item => item.parent_id === parentId)
+        .map(item => ({
+          id: item.id,
+          title: item.title,
+          isActive: !!item.is_active,
+          parentId: item.parent_id,
+          child: buildTree(items, item.id) // Рекурсивно находим дочерние элементы
+        }));
+    };
+
+    // create иерархическую структуру меню
+    const menuTree = buildTree(menu);
+
+    // return иерархическую структуру меню клиенту
+    res.status(200).json({ menu: menuTree });
   } catch (error) {
     console.error("Error fetching menu items:", error);
     res.status(500).json({ error: "Не удалось загрузить меню" });
@@ -19,41 +35,22 @@ router.post("/menu_items/save", async (req, res) => {
 
   try {
     await connection.beginTransaction();
-    await connection.query("DELETE FROM menu_items");
-    await connection.query("DELETE FROM submenu_items");
-    await connection.query("DELETE FROM subsubmenu_items");
-	await connection.query("ALTER TABLE menu_items AUTO_INCREMENT = 1;");
-	await connection.query("ALTER TABLE submenu_items AUTO_INCREMENT = 1;");
-	await connection.query("ALTER TABLE subsubmenu_items AUTO_INCREMENT = 1;");
-    const menuMap = new Map();
-    for (const item of menu) {
-      const [result] = await connection.query(
-        "INSERT INTO menu_items (name) VALUES (?)",
-        [item.name]
-      );
-      const menuItemId = result.insertId;
-      menuMap.set(item.id, menuItemId);
+    await connection.query("DELETE FROM menu_hierarchy");
+    await connection.query("ALTER TABLE menu_hierarchy AUTO_INCREMENT = 1;");
+    const insertMenuItems = async (items, parentId = null) => {
+      for (const item of items) {
+        const [result] = await connection.query(
+          "INSERT INTO menu_hierarchy (title, parent_id) VALUES (?, ?)",
+          [item.title, parentId]
+        );
+        const newItemId = result.insertId;
 
-      if (item.children) {
-        for (const child of item.children) {
-          const [childResult] = await connection.query(
-            "INSERT INTO submenu_items (subname, menu_item_id) VALUES (?, ?)",
-            [child.name, menuItemId]
-          );
-          const submenuItemId = childResult.insertId;
-          for (const subChild of child.children) {
-            await connection.query(
-              "INSERT INTO subsubmenu_items (name, child_id, menu_items_id) VALUES (?, ?, ?)",
-              [
-                subChild.name,
-                submenuItemId,
-                menuMap.get(subChild.menu_items_id),
-              ]
-            );
-          }
+        if (item.child && item.child.length > 0) {
+          await insertMenuItems(item.child, newItemId);
         }
       }
-    }
+    };
+    await insertMenuItems(menu);
 
     await connection.commit();
     res.status(200).json({ message: "Menu saved successfully" });
@@ -65,5 +62,4 @@ router.post("/menu_items/save", async (req, res) => {
     connection.release();
   }
 });
-
 module.exports = router;

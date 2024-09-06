@@ -1,15 +1,21 @@
 <script>
-import { mapState } from 'vuex';
+import RecursiveMenuItem from './RecursiveMenuItem.vue';
+import BreadcrumbsComponent from './BreadcrumbsComponent.vue';
+import { mapState, mapActions } from 'vuex';
 export default {
     data() {
         return {
-            menu: [],
             newName: '',
             newUnderName: '',
             newPlaceholderParent: "Название меню",
-            newPlaceholderChild: "Название подменю",
             activeItemId: null,
-        };
+            breadcrumbPath: [],
+            menuTree: []
+        }
+    },
+    components: {
+        BreadcrumbsComponent,
+        RecursiveMenuItem,
     },
     computed: {
         ...mapState({
@@ -18,6 +24,7 @@ export default {
         }),
     },
     methods: {
+        ...mapActions(['setAuthenticated', 'setRole']),
         loadMenu() {
             const requestSettings = {
                 method: "GET",
@@ -28,31 +35,9 @@ export default {
             fetch('http://localhost:3000/apiMenu/menu_items', requestSettings)
                 .then(response => response.json())
                 .then(data => {
-                    this.menu = data.menu.map(item => {
-                        const children = data.submenu
-                            .filter(child => child.menu_item_id === item.id)
-                            .map(child => ({
-                                id: child.id,
-                                name: child.subname,
-                                menu_item_id: child.menu_item_id,
-                                children: data.subsubmenu
-                                    .filter(subChild => subChild.child_id === child.id)
-                                    .map(subChild => ({
-                                        id: subChild.id,
-                                        name: subChild.name,
-                                        child_id: subChild.child_id,
-                                        menu_items_id: subChild.menu_items_id
-                                    }))
-                            }));
-
-                        return {
-                            id: item.id,
-                            name: item.name,
-                            children: children
-                        };
-                    });
+                    this.menuTree = data.menu;
                 })
-                .catch(error => console.error(error))
+                .catch(error => console.error('Ошибка загрузки меню:', error));
         },
         toggleInput(event) {
             const button = event.target;
@@ -69,243 +54,192 @@ export default {
             }
         },
         toggleActive(id) {
-            this.menu = this.menu.map(item => {
-                if (item.id === id) {
-                    item.isActive = !item.isActive;
-                } else {
+            this.updateBreadcrumb(this.menuTree, id)
+            this.resetActiveState(this.menuTree, id);
+            this.updateActiveState(this.menuTree, id);
+            this.buildTree();
+        },
+        resetActiveState(items, idToActivate) {
+            items.forEach(item => {
+                if (item.id !== idToActivate && (!item.child || !this.containsActiveChild(item.child, idToActivate))) {
                     item.isActive = false;
                 }
-                return item;
+                if (item.child) {
+                    this.resetActiveState(item.child, idToActivate);
+                }
             });
-            this.activeItemId = this.menu.find(item => item.isActive)?.id || null;
         },
-        handleClickOutside(event) {
-            const menuItems = event.target.closest('.menuEditor__wrapper_items');
-            const underMenu = event.target.classList.contains('close');
-            if (!menuItems && !underMenu) {
-                this.menu = this.menu.map(item => {
-                    item.isActive = false;
-                    return item;
-                });
-                this.activeItemId = null;
-            }
+        containsActiveChild(items, idToActivate) {
+            return items.some(item => item.id === idToActivate || (item.child && this.containsActiveChild(item.child, idToActivate)));
+        },
+        updateActiveState(items, idToActivate) {
+            items.forEach(item => {
+                if (item.id === idToActivate) {
+                    item.isActive = !item.isActive;
+                }
+                if (item.child) {
+                    this.updateActiveState(item.child, idToActivate);
+                }
+            });
         },
         addMenuItem(parentId = null) {
             const newItem = {
-                id: this.menu.length ? this.menu.length + 1 : 1,
-                name: this.newName,
-                children: []
+                id: Date.now(),
+                title: this.newName,
+                isActive: false,
+                parentId,
+                child: [],
             };
-            this.addMenu(newItem, parentId);
-        },
-        addMenu(newItem, parentId) {
-            if (this.newName !== '' && parentId === null) {
-                this.menu.push(newItem);
-                this.newName = '';
-                this.newPlaceholderParent = 'Название меню';
-            } else if (this.newUnderName !== '' && parentId !== null) {
-                this.menu = this.menu.map(item => {
-                    if (item.id === parentId) {
-                        if (!Array.isArray(item.children)) {
-                            item.children = [];
-                        }
-                        const newUnderItem = {
-                            id: item.children.length ? item.children.length + 1 : 1,
-                            name: this.newUnderName,
-                            menu_item_id: item.id,
-                            children: []
-                        };
-                        item.children.push(newUnderItem);
-                        this.newUnderName = '';
-                        this.newPlaceholderChild = 'Название подменю';
-                    }
-                    return item;
-                });
-            }
-        },
-        addSubChild(parentId, childId) {
-            if (this.newUnderName !== '') {
-                this.menu = this.menu.map(item => {
-                    if (item.id === parentId) {
-                        item.children = item.children.map(child => {
-                            if (child.id === childId) {
-                                if (!Array.isArray(child.children)) {
-                                    child.children = [];
-                                }
-                                const newSubChild = {
-                                    id: child.children.length ? child.children.length + 1 : 1,
-                                    name: this.newUnderName,
-                                    child_id: childId,
-                                    menu_items_id: parentId
-                                };
-                                child.children.push(newSubChild);
-                                this.newUnderName = '';
-                                this.newPlaceholderChild = 'Название подменю';
-                            }
-                            return child;
-                        });
-                    }
-                    return item;
-                });
-            }
-        },
-        editMenuItem(id, isChild = false, parentId = null, isSubChild = false, childId = null) {
-            if (this.newName !== '' && !isChild && !isSubChild) {
-                this.menu = this.menu.map(item => {
-                    if (item.id === id) {
-                        item.name = this.newName;
-                        this.newName = '';
-                    }
-                    return item;
-                });
-            } else if (this.newUnderName !== '') {
-                this.menu = this.menu.map(item => {
-                    if (isChild && !isSubChild && item.id === parentId) {
-                        item.children = item.children.map(child => {
-                            if (child.id === id) {
-                                child.name = this.newUnderName;
-                            }
-                            return child;
-                        });
-                        this.newUnderName = '';
-                    } else if (isSubChild && item.id === parentId) {
-                        item.children = item.children.map(child => {
-                            if (child.id === childId) {
-                                child.children = child.children.map(subChild => {
-                                    if (subChild.id === id) {
-                                        subChild.name = this.newUnderName;
-                                    }
-                                    return subChild;
-                                });
-                            }
-                            return child;
-                        });
-                        this.newUnderName = '';
-                    }
-                    return item;
-                });
-            }
-        },
-        deleteMenuItem(id, isChild = false, parentId = null, isSubChild = false, childId = null) {
-            if (isSubChild) {
-                this.menu = this.menu.map(item => {
-                    if (item.id === parentId) {
-                        item.children = item.children.map(child => {
-                            if (child.id === childId) {
-                                child.children = child.children.filter(subChild => subChild.id !== id);
-                            }
-                            return child;
-                        });
-                    }
-                    return item;
-                });
-            } else if (isChild) {
-                this.menu = this.menu.map(item => {
-                    if (item.id === parentId) {
-                        item.children = item.children.filter(child => child.id !== id);
-                        if (item.children.length === 0) {
-                            item.isActive = false;
-                        }
-                    }
-                    return item;
-                });
+            if (parentId === null) {
+                this.menuTree.push(newItem);
             } else {
-                this.menu = this.menu.filter(item => item.id !== id);
+                this.menuTree = this.addToParent(this.menuTree, parentId, newItem);
             }
+            this.buildTree();
+        },
+        addToParent(items, parentId, newItem) {
+            return items.map((item) => {
+                if (item.id === parentId) {
+                    if (!Array.isArray(item.child)) {
+                        item.child = [];
+                    }
+                    item.child.push(newItem);
+                } else if (item.child) {
+                    item.child = this.addToParent(item.child, parentId, newItem);
+                }
+                return item;
+            });
+        },
+        editMenuItem(id) {
+            this.menuTree = this.updateItem(this.menuTree, id, (item) => {
+                item.title = this.newName;
+            });
+            this.buildTree();
+        },
+        updateItem(items, id, updateFn) {
+            return items.map((item) => {
+                if (item.id === id) {
+                    updateFn(item);
+                } else if (item.child) {
+                    item.child = this.updateItem(item.child, id, updateFn);
+                }
+                return item;
+            });
+        },
+        buildTree() {
+            const rootItems = [];
+            const childrenMap = {};
+            this.menuTree.forEach(item => {
+                const { parentId } = item;
+                if (!parentId) {
+                    rootItems.push(item);
+                } else {
+                    if (!childrenMap[parentId]) {
+                        childrenMap[parentId] = [];
+                    }
+                    childrenMap[parentId].push(item);
+                }
+            });
+
+            const attachChildren = (items) => {
+                items.forEach(item => {
+                    if (childrenMap[item.id]) {
+                        item.child = childrenMap[item.id];
+                        attachChildren(item.child);
+                    }
+                });
+            };
+
+            attachChildren(rootItems);
+            this.menuTree = rootItems;
+        },
+        deleteItemFromMenu(items, idToDelete) {
+            return items.reduce((result, item) => {
+                if (item.id === idToDelete) {
+                    return result;
+                }
+                if (item.child) {
+                    item.child = this.deleteItemFromMenu(item.child, idToDelete);
+                }
+                result.push(item);
+                return result;
+            }, []);
+        },
+        deleteMenuItem(id) {
+            this.menuTree = this.deleteItemFromMenu(this.menuTree, id);
+            this.buildTree();
         },
         saveMenu() {
-            const menu = this.menu.map(item => {
-                const { id, name, children } = item;
-                return { id, name, children };
-            });
-            const cleanMenu = menu.map(({ id, name, children }) => ({ id, name, children}));
-            const childrenMenu = menu.flatMap(item =>
-                item.children.map(child => ({
-                    id: child.id,
-                    name: child.name,
-                    menu_item_id: child.menu_item_id,
-                    children: child.children.map(subChild => ({
-                        id: subChild.id,
-                        name: subChild.name,
-                        child_id: child.id,
-                        menu_items_id: subChild.menu_items_id
-                    }))
-                }))
-            ).flat();
+            // Рекурсивная функция для очистки структуры меню
+            const cleanMenuStructure = (items) => {
+                return items.map(item => {
+                    const { id, title, isActive, child } = item;
+                    return {
+                        id,
+                        title,
+                        isActive,
+                        child: child ? cleanMenuStructure(item.child) : [] // Рекурсивно обрабатываем дочерние элементы
+                    };
+                });
+            };
+
+            // Преобразуем структуру меню для отправки на сервер
+            const cleanedMenu = cleanMenuStructure(this.menuTree);
+
             const requestSettings = {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ menu: cleanMenu, children: childrenMenu }),
+                body: JSON.stringify({ menu: cleanedMenu }),
             };
 
             fetch('http://localhost:3000/apiMenu/menu_items/save', requestSettings)
                 .then(response => response.json())
-                .then(data => console.log(data))
-                .catch(error => console.error(error));
-        }
+                .then(data => console.log('Menu saved:', data))
+                .catch(error => console.error('Error saving menu:', error));
+        },
+        updateBreadcrumb(array, id) {
+            this.breadcrumbPath = [];
+            this.findBreadcrumbPath(array, id);
+        },
+
+        findBreadcrumbPath(array, id) {
+            for (const item of array) {
+                if (item.id === id) {
+                    this.breadcrumbPath.push(item.title);
+                    return true;
+                }
+                if (item.child && this.findBreadcrumbPath(item.child, id)) {
+                    this.breadcrumbPath.unshift(item.title);
+                    return true;
+                }
+            }
+            return false;
+        },
     },
     mounted() {
         this.loadMenu();
+        this.buildTree();
         window.addEventListener('click', this.handleClickOutside);
         window.addEventListener('click', this.toggleInput);
     },
-}
+};
 </script>
-
 <template>
     <section class="menuEditor">
-        <h1>Редактор меню</h1>
-        <div v-if="role === 'admin'" class="sectionGap">
-            <input type="text" v-model="newName" :placeholder="newPlaceholderParent">
-            <input type="text" v-model="newUnderName" :placeholder="newPlaceholderChild">
-            <button @click="addMenuItem()">Добавить</button>
-            <button @click="saveMenu()">Сохранить изменения</button>
-        </div>
-        <transition-group name="slide-fade" tag="ul" class="menuEditor__wrapper">
-            <li class="sectionGap menuEditor__wrapper_items" v-for="item in menu" :key="item.id" ref="menuItems"
-                :class="{ 'menuEditor__wrapper_items-active': item.isActive }">
-                <div v-if="role === 'admin'" class="sectionGap__parent menuEditor__wrapper_items-parent">
-                    <button class="change" @click="editMenuItem(item.id)">Edit</button>
-                    <button class="buttonChild" @click="addMenuItem(item.id)">+</button>
-                    <button class="close" @click="deleteMenuItem(item.id)">X</button>
-                </div>
-                <h3 @click="toggleActive(item.id)">{{ item.name }}</h3>
-                <transition name="slide-fade">
-                    <ul class="menuEditor__wrapper_items-underMenu" v-if="item.isActive && item.children.length">
-                        <li class="sectionGap__parent_child" v-for="child in item.children" :key="child.id"
-                            ref="menuSubItems">
-                            <div class="menuEditor__wrapper_items-underMenu--wrapper"
-                                :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }">
-                                <div>
-                                    <button v-if="role === 'admin'" class="change"
-                                        @click="editMenuItem(child.id, true, item.id)">Edit</button>
-                                    <button v-if="role === 'admin'" class="buttonChild"
-                                        @click="addSubChild(item.id, child.id)">+</button>
-                                </div>
-                                <h5>{{ child.name }}</h5>
-                                <button v-if="role === 'admin'" class="close"
-                                    @click="deleteMenuItem(child.id, true, item.id)">X</button>
-                            </div>
-                            <transition name="slide-fade">
-                                <ul class="menuEditor__wrapper_items-underMenu"
-                                    v-if="item.isActive && child.children && child.children.length">
-                                    <li class="sectionGap__parent_child sectionGap__parent_childSecond"
-                                        :class="{ 'sectionGap__parent_child-forUsers': role !== 'admin' }"
-                                        v-for="subChild in child.children" :key="subChild.id">
-                                        <button v-if="role === 'admin'" class="change"
-                                            @click="editMenuItem(subChild.id, true, item.id, true, child.id)">Edit</button>
-                                        <h5>{{ subChild.name }}</h5>
-                                        <button v-if="role === 'admin'" class="close"
-                                            @click="deleteMenuItem(subChild.id, true, item.id, true, child.id)">X</button>
-                                    </li>
-                                </ul>
-                            </transition>
-                        </li>
-                    </ul>
-                </transition>
-            </li>
+        <transition-group name="slide-fade" tag="ul" class="menuEditor__wrapper"
+            :class="{ 'menuEditor__wrapper--forUser': role !== 'admin' }">
+            <recursive-menu-item v-for="item in menuTree" :key="item.id" :item="item" :role="role"
+                :breadcrumb-path="breadcrumbPath" @toggle-active="toggleActive" @edit-item="editMenuItem"
+                @delete-item="deleteMenuItem" @add-menu-item="addMenuItem" @click-breadcrumb="updateBreadcrumb" />
         </transition-group>
+        <BreadcrumbsComponent :breadcrumb-path="breadcrumbPath"></BreadcrumbsComponent>
     </section>
+    <div v-if="role === 'admin'" class="sectionMenu">
+        <h2>Редактор меню</h2>
+        <input type="text" v-model="newName" :placeholder="newPlaceholderParent" />
+        <button @click="addMenuItem()">Добавить</button>
+        <button @click="saveMenu()">Сохранить изменения</button>
+    </div>
 </template>
