@@ -1,5 +1,5 @@
 # MenuEditor
-## Branch development => one logic for menu
+## Branch development => one logic for menu (Recursive)
 ## Branch main => second logic for menu
 ## 1. Project setup
 ```
